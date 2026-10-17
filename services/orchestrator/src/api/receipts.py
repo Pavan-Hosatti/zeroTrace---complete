@@ -5,6 +5,7 @@ Provides receipt retrieval, JSON/PDF/Pack downloads, and BSA Section 63 certific
 
 from __future__ import annotations
 import json
+import os
 from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import select
@@ -19,6 +20,22 @@ router = APIRouter(tags=["Receipts"])
 
 def envelope(data: Any, req_id: str) -> Dict[str, Any]:
     return {"data": data, "error": None, "request_id": req_id}
+
+
+@router.get("/receipts")
+async def list_receipts(
+    limit: int = Query(50, ge=1, le=100),
+    db: AsyncSession = Depends(get_db)
+):
+    query = select(ReceiptRecord).order_by(ReceiptRecord.issued_at.desc()).limit(limit)
+    records = (await db.execute(query)).scalars().all()
+    results = []
+    for r in records:
+        try:
+            results.append(json.loads(r.receipt_json))
+        except Exception:
+            pass
+    return envelope({"receipts": results, "total": len(results)}, generate_ulid("req_"))
 
 
 @router.get("/receipts/{id}")

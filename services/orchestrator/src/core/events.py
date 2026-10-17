@@ -93,6 +93,9 @@ async def subscribe_events(
     Yields SSE formatted data for a given job_id.
     Replays past events starting from last_event_id + 1, then streams live events.
     """
+    # Initial connection ping so HTTP response headers (Content-Type: text/event-stream) are dispatched immediately
+    yield f": connected to job {job_id}\n\n"
+
     # Replay past events
     start_seq = (last_event_id or 0) + 1
     query = (
@@ -124,9 +127,12 @@ async def subscribe_events(
 
     try:
         while True:
-            ev_dict = await q.get()
-            yield f"id: {ev_dict['seq']}\nevent: message\ndata: {json.dumps(ev_dict)}\n\n"
-            q.task_done()
+            try:
+                ev_dict = await asyncio.wait_for(q.get(), timeout=15.0)
+                yield f"id: {ev_dict['seq']}\nevent: message\ndata: {json.dumps(ev_dict)}\n\n"
+                q.task_done()
+            except asyncio.TimeoutError:
+                yield ": keepalive\n\n"
     except asyncio.CancelledError:
         pass
     finally:

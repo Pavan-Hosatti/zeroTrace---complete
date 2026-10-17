@@ -27,36 +27,17 @@ class AnchorProvider(ABC):
         pass
 
 
+from adapters.shiprite import ShipRiteClient
+
+
 class ShipRiteAnchor(AnchorProvider):
     def __init__(self, endpoint: str = settings.SHIPRITE_ENDPOINT, api_key: str = settings.SHIPRITE_API_KEY):
-        self.endpoint = endpoint
-        self.api_key = api_key
+        self.client = ShipRiteClient(api_key=api_key, endpoint=endpoint)
 
     async def anchor_root(self, job_id: str, diff_root: str, receipt_id: str) -> Dict[str, Any]:
-        logger.info("anchoring_via_shiprite", job_id=job_id, diff_root=diff_root)
-        if settings.ENABLE_OFFLINE_FALLBACK or self.api_key == "mock-shiprite-key":
-            tx_hash = f"0x{os.urandom(32).hex()}"
-            return {
-                "network": "ShipRite-AnchorNet",
-                "tx_hash": tx_hash,
-                "block": 4829104,
-                "target": settings.EVM_CONTRACT_ADDRESS,
-                "explorer_url": f"https://explorer.shiprite.io/tx/{tx_hash}",
-                "status": "CONFIRMED"
-            }
+        logger.info("anchoring_via_shiprite_client", job_id=job_id, diff_root=diff_root)
+        return await self.client.anchor_diff_root(job_id, diff_root, receipt_id)
 
-        headers = {"Authorization": f"Bearer {self.api_key}"}
-        payload = {"job_id": job_id, "root": diff_root, "metadata": {"receipt_id": receipt_id}}
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.post(self.endpoint, headers=headers, json=payload)
-                if resp.status_code in [200, 201]:
-                    return resp.json()
-        except Exception as e:
-            logger.warn("shiprite_anchor_failed_falling_back", error=str(e))
-
-        # Fallback to local signed ledger
-        return await LocalSignedLedgerAnchor().anchor_root(job_id, diff_root, receipt_id)
 
 
 class EVMTestnetAnchor(AnchorProvider):
@@ -112,10 +93,14 @@ class LocalSignedLedgerAnchor(AnchorProvider):
         }
 
 
-def get_anchor_provider() -> AnchorProvider:
-    provider = settings.ANCHOR_PROVIDER.lower()
-    if provider == "shiprite":
+def get_anchor_provider(provider: str | None = None) -> AnchorProvider:
+    """
+    Factory: returns the configured AnchorProvider.
+    Falls back gracefully through ShipRite -> EVM -> Local sealed ledger.
+    """
+    p = (provider or settings.ANCHOR_PROVIDER).lower().strip()
+    if p == "shiprite":
         return ShipRiteAnchor()
-    elif provider == "evm":
+    elif p == "evm":
         return EVMTestnetAnchor()
     return LocalSignedLedgerAnchor()

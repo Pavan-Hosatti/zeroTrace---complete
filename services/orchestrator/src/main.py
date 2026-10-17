@@ -29,6 +29,7 @@ from api.receipts import router as receipts_router
 from api.verify import router as verify_router
 from api.adversary import router as adversary_router
 from api.demo import router as demo_router
+from api.admin import router as admin_router, get_prometheus_metrics
 
 
 @asynccontextmanager
@@ -104,6 +105,10 @@ app.include_router(receipts_router, prefix="/api/v1")
 app.include_router(verify_router, prefix="/api/v1")
 app.include_router(adversary_router, prefix="/api/v1")
 app.include_router(demo_router, prefix="/api/v1")
+app.include_router(admin_router, prefix="/api/v1")
+
+# Standard Prometheus metrics exposition
+app.add_api_route("/metrics", get_prometheus_metrics, methods=["GET"], tags=["Telemetry"], include_in_schema=False)
 
 
 if __name__ == "__main__":
