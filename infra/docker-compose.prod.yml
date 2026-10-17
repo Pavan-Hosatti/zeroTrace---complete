@@ -95,3 +95,15 @@ services:
         condition: service_healthy
     networks:
       - zt-net
+
+  web:
+    image: ghcr.io/zerotrace/web:latest
+    container_name: zt-web-prod
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - orchestrator
+    networks:
+      - zt-net
+
