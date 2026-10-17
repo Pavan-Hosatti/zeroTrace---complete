@@ -14,5 +14,7 @@ reportlab==4.2.5
 qrcode==8.0
 pyyaml==6.0.2
 redis==5.3.1
+arq==0.26.1
+alembic==1.14.0
 pytest==9.0.3
 pytest-asyncio==1.4.0

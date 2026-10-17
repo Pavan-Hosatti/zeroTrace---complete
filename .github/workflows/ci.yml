@@ -23,9 +23,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r services/orchestrator/requirements.txt
 
-      - name: Run unit and contract tests
+      - name: Run unit and contract tests (48 tests)
         run: |
           pytest services/orchestrator/tests -v
+
+      - name: Verify Cryptographic Proof Benchmarks
+        run: |
+          python scripts/benchmark_proofs.py
 
       - name: Run End-to-End Golden Path Test
         run: |

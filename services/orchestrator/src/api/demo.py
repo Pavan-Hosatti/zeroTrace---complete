@@ -4,16 +4,20 @@ Provides preflight diagnostic health, scenario control, seed, reset, and impact 
 """
 
 from __future__ import annotations
+import json
 from typing import Any, Dict, Optional
 import httpx
 from fastapi import APIRouter, Depends
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.config import settings
 from core.logging import logger
 from core.ulid import generate_ulid
 from models.database import get_db
-from models.entities import RequestRecord, JobRecord, JobEventRecord, PlanRecord, ReceiptRecord, RetentionHoldRecord, AgentTraceRecord
+from models.entities import (
+    RequestRecord, JobRecord, JobEventRecord, PlanRecord,
+    ReceiptRecord, RetentionHoldRecord, AgentTraceRecord, DemoStateRecord
+)
 
 router = APIRouter(tags=["Demo"])
 
@@ -74,6 +78,47 @@ async def demo_seed(payload: Optional[Dict[str, Any]] = None):
         "profile": profile,
         "message": f"Seeded {profile} profile (50,000 customers, 480 Parquet data files across 24 partitions)."
     }, generate_ulid("req_"))
+
+
+@router.post("/demo/scenario")
+async def set_demo_scenario(payload: Dict[str, Any], db: AsyncSession = Depends(get_db)):
+    """
+    Configures demo scenario state (e.g. ghost_miss=True for self-healing demo).
+    """
+    key = "active_scenario"
+    val_json = json.dumps(payload)
+
+    query = select(DemoStateRecord).where(DemoStateRecord.key == key)
+    existing = (await db.execute(query)).scalar_one_or_none()
+    if existing:
+        existing.value_json = val_json
+    else:
+        db.add(DemoStateRecord(key=key, value_json=val_json))
+    await db.commit()
+
+    # Forward to Data Plane if available
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            await client.post(
+                f"{settings.DATAPLANE_URL}/v1/demo/scenario",
+                headers={"X-Service-Key": settings.SERVICE_KEY},
+                json=payload
+            )
+    except Exception:
+        pass
+
+    return envelope({
+        "scenario": payload,
+        "message": f"Demo scenario updated: {payload}"
+    }, generate_ulid("req_"))
+
+
+@router.get("/demo/scenario")
+async def get_demo_scenario(db: AsyncSession = Depends(get_db)):
+    query = select(DemoStateRecord).where(DemoStateRecord.key == "active_scenario")
+    rec = (await db.execute(query)).scalar_one_or_none()
+    data = json.loads(rec.value_json) if rec else {"scenario": "golden", "ghost_miss": False}
+    return envelope(data, generate_ulid("req_"))
 
 
 @router.get("/system/preflight")
