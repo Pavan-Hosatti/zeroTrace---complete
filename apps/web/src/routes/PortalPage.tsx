@@ -20,6 +20,7 @@ import { api, ApiError } from "@/api/client";
 import { otpVerifyZ, portalSubmitZ, receiptZ, type JobStage, type PortalSubmit, type Receipt } from "@/api/schemas";
 import { applyLocale, loadAllScriptFonts, PORTAL_LOCALES, DEFAULT_LOCALE, type PortalLocale } from "@/i18n";
 import useVoiceRecorder, { type VoiceTake } from "@/hooks/useVoiceRecorder";
+import { useVoiceReceipt } from "@/hooks/useVoiceReceipt";
 import { jobStreamStore, useJobEvents } from "@/hooks/useJobEvents";
 import type { JobEventView } from "@/lib/event-view";
 import { Chip } from "@/components/ui/Chip";
@@ -418,6 +419,7 @@ function ReceiptView({ receipt, secret, locale }: { receipt: Receipt; secret: st
   const [qr, setQr] = useState("");
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const { speakReceipt, stopSpeaking, isPlaying } = useVoiceReceipt();
 
   useEffect(() => {
     let alive = true;
@@ -548,6 +550,28 @@ function ReceiptView({ receipt, secret, locale }: { receipt: Receipt; secret: st
               <a className="zt-button" href={`/api/v1/receipts/${encodeURIComponent(receipt.receipt_id)}/download?format=pdf`}>
                 {t("portal.receipt.dl.pdf")}
               </a>
+              <button
+                type="button"
+                className="zt-button"
+                data-variant="neutral"
+                onClick={() => {
+                  if (isPlaying) {
+                    stopSpeaking();
+                  } else {
+                    const rawLang = locale.code.split("-")[0];
+                    const lang = rawLang === "hi" || rawLang === "kn" || rawLang === "ta" ? rawLang : "en";
+                    speakReceipt({
+                      receiptId: receipt.receipt_id,
+                      solanaTx: receipt.anchor?.tx_hash,
+                      recordsErased: (Object.values(receipt.items_erased_counts || {})[0] as number) || 1,
+                      language: lang,
+                    });
+                  }
+                }}
+                aria-label="Listen to spoken verification receipt"
+              >
+                {isPlaying ? "⏹ Stop Audio" : "🔊 Listen Spoken Receipt"}
+              </button>
             </div>
           </div>
         </div>
