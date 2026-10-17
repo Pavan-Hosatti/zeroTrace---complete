@@ -1,4 +1,4 @@
-version: '3.8'
+# ZeroTrace Enterprise Docker Compose Architecture
 
 networks:
   zt-net:
@@ -49,25 +49,18 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:latest
+    image: scality/s3server:latest
     container_name: zt-minio
     restart: unless-stopped
-    command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadminpassword
+      SCALITY_ACCESS_KEY_ID: minioadmin
+      SCALITY_SECRET_ACCESS_KEY: minioadminpassword
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:8000"
     volumes:
-      - minio_data:/data
+      - minio_data:/usr/src/app/localData
     networks:
       - zt-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
 
   iceberg-catalog:
     image: tabulario/iceberg-rest:latest
@@ -83,8 +76,7 @@ services:
       AWS_SECRET_ACCESS_KEY: minioadminpassword
       AWS_REGION: ap-south-1
     depends_on:
-      minio:
-        condition: service_healthy
+      - minio
     networks:
       - zt-net
 
@@ -139,7 +131,7 @@ services:
       redis:
         condition: service_healthy
       minio:
-        condition: service_healthy
+        condition: service_started
     networks:
       - zt-net
 
