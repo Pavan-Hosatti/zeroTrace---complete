@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     PORT: int = 8001
     HOST: str = "0.0.0.0"
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8001", "https://app.zerotrace.dev", "*"]
+    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173", "http://localhost:8001", "https://app.zerotrace.dev", "*"]
     SERVICE_KEY: str = "dev-service-key"
     JWT_SECRET: str = "zerotrace-demo-jwt-secret-key-must-be-at-least-32-bytes-long"
     PEPPER_SECRET: str = "zerotrace-pseudonym-hmac-pepper-secret-key-32-bytes"
