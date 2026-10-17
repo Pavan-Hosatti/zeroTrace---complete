@@ -153,77 +153,120 @@ def rule_based_fallback_parser(text: str, language: str) -> IntentCard:
 
 
 class GemmaAdapter:
-    def __init__(self, api_base: str = settings.GEMMA_API_BASE, model_id: str = settings.GEMMA_MODEL_ID):
+    def __init__(self, api_base: str = settings.GEMMA_API_BASE, model_id: str = settings.GEMMA_MODEL_ID, api_key: str = settings.GEMINI_API_KEY):
         self.api_base = api_base
         self.model_id = model_id
+        self.api_key = api_key
 
     async def parse_intent(self, text: str, language: str) -> IntentCard:
         """
-        Calls Gemma LLM with structured schema or falls back to deterministic parser.
+        Calls Google Gemma / Gemini API with structured prompt-injection defense
+        or falls back to deterministic rule-based parser.
         """
         clean_text = sanitize_input(text)
 
-        if settings.ENABLE_OFFLINE_FALLBACK:
-            return rule_based_fallback_parser(clean_text, language)
+        # 1. Try Google Generative AI / Gemini endpoint if key provided
+        if self.api_key and not self.api_key.startswith("mock"):
+            prompt = f"""
+You are an expert legal NLP compliance parser for India's Digital Personal Data Protection (DPDP) Act, 2023.
+Extract the user's statutory consent revocation intent and personal identifiers from this transcript.
+Transcript: "{clean_text}"
+Detected Language: "{language}"
 
-        prompt = f"""
+Respond ONLY with valid JSON adhering to:
+{{
+  "intent": "withdraw_consent" | "erase" | "access" | "correct",
+  "confidence": float between 0.8 and 1.0,
+  "statute_section": "Digital Personal Data Protection Act, 2023 (Section 6(4) & Section 12)",
+  "phone": string or null,
+  "email": string or null,
+  "customer_id": string or null,
+  "name": string or null
+}}
+"""
+            try:
+                endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key}"
+                async with httpx.AsyncClient(timeout=8.0) as client:
+                    resp = await client.post(
+                        endpoint,
+                        json={
+                            "contents": [{"parts": [{"text": prompt}]}],
+                            "generationConfig": {"temperature": 0.0, "responseMimeType": "application/json"}
+                        }
+                    )
+                    if resp.status_code == 200:
+                        candidates = resp.json().get("candidates", [])
+                        if candidates:
+                            raw_json = candidates[0]["content"]["parts"][0]["text"]
+                            parsed = json.loads(raw_json)
+
+                            identifiers: List[IdentifierVariant] = []
+                            if parsed.get("phone"):
+                                identifiers.append(IdentifierVariant(
+                                    type="phone",
+                                    raw_value=parsed["phone"],
+                                    variants=generate_phone_variants(parsed["phone"])
+                                ))
+                            if parsed.get("customer_id"):
+                                identifiers.append(IdentifierVariant(
+                                    type="customer_id",
+                                    raw_value=parsed["customer_id"],
+                                    variants=[parsed["customer_id"]]
+                                ))
+                            if parsed.get("name"):
+                                identifiers.append(IdentifierVariant(
+                                    type="name",
+                                    raw_value=parsed["name"],
+                                    variants=generate_name_variants(parsed["name"])
+                                ))
+
+                            logger.info("google_gemma_intent_parsed_successfully", intent=parsed.get("intent"))
+                            return IntentCard(
+                                intent=parsed.get("intent", "withdraw_consent"),
+                                statute_section="Digital Personal Data Protection Act, 2023 (Section 6(4) & Section 12)",
+                                confidence=float(parsed.get("confidence", 0.99)),
+                                raw_transcript=clean_text,
+                                detected_language=language,
+                                identifiers=identifiers or rule_based_fallback_parser(clean_text, language).identifiers,
+                                requires_legal_review=True
+                            )
+            except Exception as e:
+                logger.warn("google_gemma_api_call_failed_using_fallback", error=str(e))
+
+        # 2. Local Ollama/vLLM endpoint fallback
+        if not settings.ENABLE_OFFLINE_FALLBACK:
+            prompt = f"""
 You are an expert legal NLP parser for India's DPDP Act 2023.
 Extract the user's intent and personal identifiers from this transcript.
 Transcript: "{clean_text}"
 Language: "{language}"
 
-Return valid JSON with keys:
-- intent: ("withdraw_consent" | "erase" | "access" | "correct")
-- confidence: float between 0.0 and 1.0
-- phone: string or null
-- email: string or null
-- customer_id: string or null
-- name: string or null
+Return valid JSON with keys: intent, confidence, phone, email, customer_id, name
 """
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.post(
-                    f"{self.api_base}/chat/completions",
-                    json={
-                        "model": self.model_id,
-                        "messages": [{"role": "user", "content": prompt}],
-                        "temperature": 0.0
-                    }
-                )
-                if resp.status_code == 200:
-                    raw_content = resp.json()["choices"][0]["message"]["content"]
-                    parsed = json.loads(raw_content)
-
-                    identifiers: List[IdentifierVariant] = []
-                    if parsed.get("phone"):
-                        identifiers.append(IdentifierVariant(
-                            type="phone",
-                            raw_value=parsed["phone"],
-                            variants=generate_phone_variants(parsed["phone"])
-                        ))
-                    if parsed.get("customer_id"):
-                        identifiers.append(IdentifierVariant(
-                            type="customer_id",
-                            raw_value=parsed["customer_id"],
-                            variants=[parsed["customer_id"]]
-                        ))
-                    if parsed.get("name"):
-                        identifiers.append(IdentifierVariant(
-                            type="name",
-                            raw_value=parsed["name"],
-                            variants=generate_name_variants(parsed["name"])
-                        ))
-
-                    return IntentCard(
-                        intent=parsed.get("intent", "withdraw_consent"),
-                        statute_section="Digital Personal Data Protection Act, 2023 (Section 6 & 12)",
-                        confidence=float(parsed.get("confidence", 0.95)),
-                        raw_transcript=clean_text,
-                        detected_language=language,
-                        identifiers=identifiers,
-                        requires_legal_review=True
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    resp = await client.post(
+                        f"{self.api_base}/chat/completions",
+                        json={
+                            "model": self.model_id,
+                            "messages": [{"role": "user", "content": prompt}],
+                            "temperature": 0.0
+                        }
                     )
-        except Exception as e:
-            logger.warn("gemma_llm_call_failed_using_fallback", error=str(e))
+                    if resp.status_code == 200:
+                        raw_content = resp.json()["choices"][0]["message"]["content"]
+                        parsed = json.loads(raw_content)
+                        return IntentCard(
+                            intent=parsed.get("intent", "withdraw_consent"),
+                            statute_section="Digital Personal Data Protection Act, 2023 (Section 6 & 12)",
+                            confidence=float(parsed.get("confidence", 0.95)),
+                            raw_transcript=clean_text,
+                            detected_language=language,
+                            identifiers=rule_based_fallback_parser(clean_text, language).identifiers,
+                            requires_legal_review=True
+                        )
+            except Exception as e:
+                logger.warn("local_gemma_call_failed", error=str(e))
 
+        # 3. High-assurance rule-based fallback
         return rule_based_fallback_parser(clean_text, language)

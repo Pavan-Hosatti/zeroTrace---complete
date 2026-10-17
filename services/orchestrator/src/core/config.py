@@ -36,8 +36,8 @@ class Settings(BaseSettings):
 
     # AI / External Services
     SARVAM_API_KEY: str = "mock-sarvam-key"
-    SARVAM_ENDPOINT: str = "https://api.sarvam.ai/speech-to-text"
-    GEMMA_MODEL_ID: str = "gemma-2-9b-it"
+    GEMINI_API_KEY: str = os.getenv("ZT_GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
+    GEMMA_MODEL_ID: str = "gemma-4-26b-a4b-it"
     GEMMA_API_BASE: str = "http://localhost:11434/v1"
     ENABLE_OFFLINE_FALLBACK: bool = True
 
@@ -46,9 +46,11 @@ class Settings(BaseSettings):
     POLICY_VERSION: str = "dpdp-2023-v1.4"
 
     # Blockchain Anchor
-    ANCHOR_PROVIDER: str = "local"  # "shiprite" | "evm" | "local"
+    ANCHOR_PROVIDER: str = "local"  # "shiprite" | "solana" | "evm" | "local"
     SHIPRITE_API_KEY: str = "mock-shiprite-key"
     SHIPRITE_ENDPOINT: str = "https://api.shiprite.io/v1/anchor"
+    SOLANA_RPC_URL: str = "https://api.devnet.solana.com"
+    SOLANA_CLUSTER: str = "devnet"
     EVM_RPC_URL: str = "http://localhost:8545"
     EVM_CONTRACT_ADDRESS: str = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
 
