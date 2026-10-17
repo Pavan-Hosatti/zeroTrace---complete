@@ -11,7 +11,14 @@ export const env = {
     return str("VITE_API_BASE", "");
   },
   get useMock(): boolean {
-    return str("VITE_USE_MOCK", "false").toLowerCase() === "true";
+    const explicitlySet = str("VITE_USE_MOCK", "");
+    if (explicitlySet !== "") {
+      return explicitlySet.toLowerCase() === "true";
+    }
+    if (typeof window !== "undefined" && window.location.hostname.includes("vercel.app")) {
+      return true;
+    }
+    return false;
   },
   get mockSpeed(): number {
     const n = Number(str("VITE_MOCK_SPEED", "1"));
