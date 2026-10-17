@@ -65,3 +65,20 @@ This document provides the exact **problem-solution rationale** for why each spo
 - **The Authentic Technical Truth**:
   > *"Data Principals speak in mixed-language slang (Hinglish, Kanglish, Tanglish) and occasionally submit adversarial inputs.  
   > We use **Google Gemma** equipped with a strict prompt-injection defense pipeline. Gemma cleans the transcript, extracts statutory consent revocation intents under DPDP Act Section 6(4), normalizes phone/Aadhaar formats, and outputs structured legal JSON while rejecting injection attacks like 'Ignore previous instructions'."*
+
+---
+
+## 9. ElevenLabs (Experience Plane)
+- **The Surface-Level Pitch (What to Avoid)**: *"We added text-to-speech for cool effects."*
+- **The Authentic Technical Truth**:
+  > *"Under the DPDP Act 2023 Section 5(3), communications and notices to Data Principals must be accessible in all 22 Eighth Schedule official languages of India, particularly for low-literacy or visually impaired citizens.  
+  > We integrated **ElevenLabs Voice AI** to synthesize real-time, ultra-low-latency spoken legal receipts in Hindi, Kannada, Tamil, Telugu, and Indian English. When a citizen's personal data is permanently shredded, they receive an authentic audio receipt confirming their Solana blockchain transaction hash and statutory erasure certificate in their mother tongue."*
+
+---
+
+## 10. Backboard.io (Brain & Data Plane)
+- **The Surface-Level Pitch (What to Avoid)**: *"We stored chatbot data."*
+- **The Authentic Technical Truth**:
+  > *"In modern enterprise AI stacks (customer care bots, agentic workflows), user interactions are persisted in vector databases and conversation memory threads (Backboard.io, LangChain/MemGPT). When a citizen exercises Section 6(4) erasure, lakehouse SQL scripts delete tables, but the AI agent's long-term memory remains infected with past PII queries and embeddings!  
+  > ZeroTrace built the **Backboard.io Conversational Memory Scrubber**. It iterates across all active session threads, irreversibly zeroes vector embeddings (1536-dim), and executes a mathematical 'Amnesia Probe' ensuring cosine similarity to the principal is exactly 0.000."*
+

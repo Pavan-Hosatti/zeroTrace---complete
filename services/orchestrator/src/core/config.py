@@ -36,9 +36,11 @@ class Settings(BaseSettings):
 
     # AI / External Services
     SARVAM_API_KEY: str = "mock-sarvam-key"
+    SARVAM_ENDPOINT: str = "https://api.sarvam.ai/v1"
     GEMINI_API_KEY: str = os.getenv("ZT_GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
     GEMMA_MODEL_ID: str = "gemma-4-26b-a4b-it"
     GEMMA_API_BASE: str = "http://localhost:11434/v1"
+    ELEVENLABS_API_KEY: str = os.getenv("ELEVENLABS_API_KEY", "")
     ENABLE_OFFLINE_FALLBACK: bool = True
 
     # Cryptography & Proof

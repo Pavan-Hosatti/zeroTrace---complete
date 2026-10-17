@@ -16,6 +16,7 @@ import {
 } from "@/lib/proof";
 import { env } from "@/lib/env";
 import { formatDate, shortenRef } from "@/lib/format";
+import { useVoiceReceipt } from "@/hooks/useVoiceReceipt";
 
 /**
  * Public Verifier — every cryptographic check runs in this browser.
@@ -56,6 +57,7 @@ export default function VerifierPage() {
   const [verifying, setVerifying] = useState(false);
   const [secret, setSecret] = useState<string>("");
   const [secretResult, setSecretResult] = useState<{ pass: boolean; commitment: string } | null>(null);
+  const { speakReceipt, stopSpeaking, isPlaying } = useVoiceReceipt();
 
   /* deep link: /verify/:receiptId loads the receipt, no paste needed */
   useEffect(() => {
@@ -378,6 +380,45 @@ export default function VerifierPage() {
               That is the whole product: one edited byte and the math stops agreeing with itself. Load the demo receipt
               to restore.
             </p>
+          ) : receipt ? (
+            <div className="zt-card" style={{ marginTop: "1.25rem", padding: "1.25rem", border: "1px solid var(--zt-border)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
+                <div>
+                  <span style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <span>🔊 Spoken Audio Verification</span>
+                    <Chip tone="info">DPDP Act §5(3) Accessible</Chip>
+                  </span>
+                  <p className="zt-caption" style={{ margin: "0.25rem 0 0" }}>
+                    Spoken proof receipt with Solana transaction hash in scheduled regional languages (ElevenLabs Voice AI)
+                  </p>
+                </div>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  {(["en", "hi", "kn", "ta"] as const).map((lang) => (
+                    <button
+                      key={lang}
+                      type="button"
+                      className="zt-button"
+                      data-variant="neutral"
+                      onClick={() => speakReceipt({
+                        receiptId: receipt.receipt_id,
+                        solanaTx: receipt.anchor?.tx_hash,
+                        recordsErased: (Object.values(receipt.items_erased_counts || {})[0] as number) || 1,
+                        language: lang,
+                      })}
+                      disabled={isPlaying}
+                      aria-label={`Listen in ${lang}`}
+                    >
+                      {isPlaying ? "Playing..." : lang === "en" ? "English" : lang === "hi" ? "हिंदी" : lang === "kn" ? "ಕನ್ನಡ" : "தமிழ்"}
+                    </button>
+                  ))}
+                  {isPlaying ? (
+                    <button type="button" className="zt-button" data-variant="danger" onClick={stopSpeaking}>
+                      Stop Audio
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
           ) : null}
         </section>
       ) : null}
