@@ -82,3 +82,15 @@ This document provides the exact **problem-solution rationale** for why each spo
   > *"In modern enterprise AI stacks (customer care bots, agentic workflows), user interactions are persisted in vector databases and conversation memory threads (Backboard.io, LangChain/MemGPT). When a citizen exercises Section 6(4) erasure, lakehouse SQL scripts delete tables, but the AI agent's long-term memory remains infected with past PII queries and embeddings!  
   > ZeroTrace built the **Backboard.io Conversational Memory Scrubber**. It iterates across all active session threads, irreversibly zeroes vector embeddings (1536-dim), and executes a mathematical 'Amnesia Probe' ensuring cosine similarity to the principal is exactly 0.000."*
 
+---
+
+## 11. Sarvam AI (Experience & Brain Plane) — Indic Sovereign Voice & Transcription
+- **The Surface-Level Pitch (What to Avoid)**: *"We used Sarvam for general transcription."*
+- **The Authentic Technical Truth**:
+  > *"India has 1.4 billion citizens speaking over 22 scheduled languages with hundreds of regional dialects. When rural or non-English speaking citizens call fintech helplines to revoke consent, generic US models hallucinate on Indian phone numbers, Aadhaar digits, and mixed-language Hinglish/Kanglish phrasing.  
+  > ZeroTrace integrates **Sarvam AI’s sovereign Indic models**:  
+  > 1. **STT (`saaras:v4`)**: High-accuracy Indic voice ingestion extracting citizen identifiers and consent revocation intents with language auto-detection (Kannada, Hindi, Tamil, Telugu).  
+  > 2. **TTS (`bulbul:v4-flash` & `bulbul:v3`)**: Native Indic voice generation using speaker `shubh_enhi_ads` to synthesize accessible spoken verification receipts mandated by DPDP Act Section 5(3).  
+  > 3. **Dual-Key High Availability**: Production dual-key failover ensuring zero downtime for mission-critical compliance audits."*
+
+

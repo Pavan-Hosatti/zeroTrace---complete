@@ -35,10 +35,19 @@ class Settings(BaseSettings):
     DATAPLANE_URL: str = "http://localhost:8002"
 
     # AI / External Services
-    SARVAM_API_KEY: str = "mock-sarvam-key"
+    SARVAM_API_KEY: str = os.getenv("ZT_SARVAM_API_KEY", os.getenv("SARVAM_API_KEY", "mock-sarvam-key"))
+    SARVAM_API_KEY_BACKUP: str = os.getenv("SARVAM_API_KEY_BACKUP", "")
     SARVAM_ENDPOINT: str = "https://api.sarvam.ai/v1"
+    SARVAM_TTS_MODEL: str = os.getenv("SARVAM_TTS_MODEL", "bulbul:v4-flash")
+    SARVAM_TTS_FALLBACK_MODEL: str = os.getenv("SARVAM_TTS_FALLBACK_MODEL", "bulbul:v3")
+    SARVAM_TTS_SPEAKER: str = os.getenv("SARVAM_TTS_SPEAKER", "shubh_enhi_ads")
+    SARVAM_TTS_ENDPOINT: str = os.getenv("SARVAM_TTS_ENDPOINT", "https://api.sarvam.ai/text-to-speech")
+    SARVAM_STT_MODEL: str = os.getenv("SARVAM_STT_MODEL", "saaras:v4")
+    SARVAM_STT_ENDPOINT: str = os.getenv("SARVAM_STT_ENDPOINT", "https://api.sarvam.ai/speech-to-text")
+    
+    BACKBOARD_API_KEY: str = os.getenv("ZT_BACKBOARD_API_KEY", os.getenv("BACKBOARD_API_KEY", ""))
     GEMINI_API_KEY: str = os.getenv("ZT_GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
-    GEMMA_MODEL_ID: str = "gemma-4-26b-a4b-it"
+    GEMMA_MODEL_ID: str = os.getenv("ZT_GEMMA_MODEL", os.getenv("GEMMA_MODEL", "gemma-4-26b-a4b-it"))
     GEMMA_API_BASE: str = "http://localhost:11434/v1"
     ELEVENLABS_API_KEY: str = os.getenv("ELEVENLABS_API_KEY", "")
     ENABLE_OFFLINE_FALLBACK: bool = True
