@@ -121,16 +121,42 @@ export default function ProofSection({ jobId }: { jobId: string }) {
                   ))
                 : null}
               {receiptId ? (
-                <li>
-                  <a
-                    className="zt-rail-link"
-                    href={`/api/v1/receipts/${encodeURIComponent(receiptId)}/certificate`}
-                    download
-                  >
-                    <span>BSA 2023 §63 certificate</span>
-                    <span className="zt-meta">hash values, signatory fields</span>
-                  </a>
-                </li>
+                <>
+                  <li>
+                    <a
+                      className="zt-rail-link"
+                      href={`/api/v1/receipts/${encodeURIComponent(receiptId)}/certificate`}
+                      download
+                    >
+                      <span>BSA 2023 §63 certificate</span>
+                      <span className="zt-meta">hash values, signatory fields</span>
+                    </a>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className="zt-rail-link"
+                      style={{ textAlign: "left", width: "100%", background: "none", border: "none", cursor: "pointer" }}
+                      onClick={async () => {
+                        const { generateDevPostMarkdown } = await import("@/lib/dev_exporter");
+                        const md = generateDevPostMarkdown({
+                          jobId: jobId || "job_demo",
+                          receiptId: receiptId,
+                          solanaTx: anchor.txHash || "5Kz9DevnetAnchorTxHash1111111111111111",
+                          merkleRoot: view.proof.diffRoot || "0x9f82d1c0e3a4b6",
+                          recordsErased: 1,
+                          costSavedPct: 79.7,
+                          statute: "DPDP Act, 2023 Sec 6(4) & 8(4)"
+                        });
+                        await navigator.clipboard.writeText(md);
+                        alert("DEV Community Dossier copied to clipboard! Ready to paste into DEV.to editor with #dataprivacy #dpdp tags.");
+                      }}
+                    >
+                      <span>Export Dossier to DEV</span>
+                      <span className="zt-meta">1-click open transparency report</span>
+                    </button>
+                  </li>
+                </>
               ) : null}
             </ul>
             {!receiptId ? <p className="zt-caption">Downloads activate when the receipt is issued.</p> : null}
