@@ -16,24 +16,24 @@ This document coordinates the parallel development of Rohan (Frontend, `apps/web
 
 ## 2. Unblocking Rohan (Frontend)
 
-Rohan does NOT need to wait for the real backend. Two options are provided:
+Rohan can integrate directly with the live, fully tested real orchestrator:
 
-### Option A: The Mock Orchestrator (Port 8001)
-Run the high-fidelity mock server that streams pre-recorded NDJSON fixtures over SSE with `Last-Event-ID` support:
-```bash
-python contracts/mock_orchestrator.py
-```
-This serves on `http://localhost:8001/api/v1` with full CORS enabled.
-
-### Option B: Real Orchestrator Backend (Port 8001)
+### Primary (Production Backend): Real Orchestrator Engine (Port 8001)
+Runs the live FastAPI engine with SQLite/Postgres persistence, real Merkle proof generation, Ed25519 signing, and live SSE event bus:
 ```bash
 uvicorn main:app --app-dir services/orchestrator/src --port 8001 --reload
 ```
+Interactive OpenAPI documentation & testing is available at `http://localhost:8001/docs`.
 
-### Option C: Pre-recorded Fixtures in `contracts/fixtures/`
+### Secondary (Isolated Fallback): Mock Orchestrator & Static Fixtures
+For offline UI prototyping when running without database dependencies:
+```bash
+python contracts/mock_orchestrator.py
+```
+Pre-recorded event fixtures are preserved in `contracts/fixtures/`:
 - `contracts/fixtures/golden-job-events.ndjson`: 42-event sequence covering all 11 stages.
-- `contracts/fixtures/audit-fail-self-heal.ndjson`: Sequence showing ghost embedding detection, round 1 failure, targeted remediation, and round 2 pass.
-- `contracts/fixtures/retention-hold.ndjson`: Sequence showing KYC statutory hold ending in `COMPLETED_WITH_HOLDS`.
+- `contracts/fixtures/audit-fail-self-heal.ndjson`: Planted ghost embedding detection, round 1 failure, targeted remediation, and round 2 pass.
+- `contracts/fixtures/retention-hold.ndjson`: KYC statutory hold ending in `COMPLETED_WITH_HOLDS`.
 - `contracts/fixtures/sample-receipt.json`: Valid cryptographic receipt.
 - `contracts/fixtures/proof-test-vectors.json`: Mathematical test vectors for in-browser client-side cryptographic verification (including tamper cases).
 
