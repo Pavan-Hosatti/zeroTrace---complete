@@ -15,6 +15,11 @@ export const env = {
     if (explicitlySet !== "") {
       return explicitlySet.toLowerCase() === "true";
     }
+    // If a real backend is configured, automatically connect to the real backend
+    if (str("VITE_API_BASE", "") !== "") {
+      return false;
+    }
+    // Fallback: if no backend is provided on Vercel, use mock fixtures so the app is always functional
     if (typeof window !== "undefined" && window.location.hostname.includes("vercel.app")) {
       return true;
     }
