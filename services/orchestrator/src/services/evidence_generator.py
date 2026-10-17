@@ -154,6 +154,24 @@ class EvidenceGenerator:
                 "corporate_ed25519_signature": receipt_data.get("signature"),
                 "blockchain_anchor_tx_hash": receipt_data.get("anchor", {}).get("tx_hash")
             },
+            "legal_provisions": [
+                {"act": "Digital Personal Data Protection Act, 2023", "section": "Section 6(4)", "provision": "Right to withdraw consent"},
+                {"act": "Digital Personal Data Protection Act, 2023", "section": "Section 12(1)", "provision": "Obligation to erase personal data upon consent withdrawal"},
+                {"act": "Digital Personal Data Protection Act, 2023", "section": "Section 12(3)", "provision": "Statutory retention exemption for legal obligations (PMLA/RBI)"},
+                {"act": "Bharatiya Sakshya Adhiniyam, 2023", "section": "Section 63(4)", "provision": "Certificate proving authenticity of electronic record"}
+            ],
+            "cryptographic_standards": {
+                "signature_scheme": "Ed25519 (RFC 8032)",
+                "hashing_algorithm": "SHA-256 (FIPS 180-4)",
+                "merkle_domain_separation": "RFC 6962 Compliant (0x00 leaf, 0x01 node)",
+                "sovereign_privacy": "Salted blind commitment with zero plain-text PII in certificate"
+            },
+            "custody_chain": {
+                "issuer_public_key": receipt_data.get("signer_public_key"),
+                "fiduciary_name": "Kaveri Finserv Limited",
+                "fiduciary_registration": "DPBI-REG-2026-KA-00429",
+                "retention_locks_active": len(receipt_data.get("retention_holds", []))
+            },
             "statement": (
                 "I hereby certify pursuant to Section 63(4) of the Bharatiya Sakshya Adhiniyam, 2023 that the electronic "
                 "record described herein was produced autonomously by the ZeroTrace system during the ordinary course "

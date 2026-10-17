@@ -19,6 +19,9 @@ from services.orchestration import JobOrchestrator
 
 router = APIRouter(tags=["Requests"])
 
+# In-memory Idempotency Cache: key -> response_dict
+_idempotency_cache: Dict[str, Dict[str, Any]] = {}
+
 
 def envelope(data: Any, req_id: str) -> Dict[str, Any]:
     return {"data": data, "error": None, "request_id": req_id}
@@ -42,8 +45,12 @@ async def _run_job_background(job_id: str, channel: str, text: Optional[str] = N
 async def create_voice_request(
     audio: UploadFile = File(...),
     language_hint: Optional[str] = Form(None),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
     db: AsyncSession = Depends(get_db)
 ):
+    if idempotency_key and idempotency_key in _idempotency_cache:
+        return _idempotency_cache[idempotency_key]
+
     req_id = generate_ulid("req_")
     job_id = generate_ulid("job_")
     subject_ref = generate_subject_ref(f"voice_{req_id}", settings.PEPPER_SECRET)
@@ -77,20 +84,27 @@ async def create_voice_request(
         language_hint=language_hint or "kn-IN"
     ))
 
-    return envelope({
+    resp = envelope({
         "request_id": req_id,
         "job_id": job_id,
         "status": "RECEIVED",
         "subject_ref": subject_ref,
         "receipt_secret": receipt_secret
     }, req_id)
+    if idempotency_key:
+        _idempotency_cache[idempotency_key] = resp
+    return resp
 
 
 @router.post("/requests/text", status_code=status.HTTP_202_ACCEPTED)
 async def create_text_request(
     payload: Dict[str, Any],
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
     db: AsyncSession = Depends(get_db)
 ):
+    if idempotency_key and idempotency_key in _idempotency_cache:
+        return _idempotency_cache[idempotency_key]
+
     text = payload.get("text", "")
     language = payload.get("language", "en-IN")
 
@@ -124,13 +138,16 @@ async def create_text_request(
         language_hint=language
     ))
 
-    return envelope({
+    resp = envelope({
         "request_id": req_id,
         "job_id": job_id,
         "status": "RECEIVED",
         "subject_ref": subject_ref,
         "receipt_secret": receipt_secret
     }, req_id)
+    if idempotency_key:
+        _idempotency_cache[idempotency_key] = resp
+    return resp
 
 
 @router.post("/webhooks/consent", status_code=status.HTTP_202_ACCEPTED)

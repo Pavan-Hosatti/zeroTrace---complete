@@ -19,6 +19,7 @@ from core.errors import (
     validation_exception_handler,
     generic_exception_handler
 )
+from core.security import EnterpriseSecurityHeadersMiddleware, RateLimitMiddleware
 from models.database import init_db
 
 # Import routers
@@ -49,7 +50,9 @@ app = FastAPI(
     openapi_url="/api/v1/openapi.json"
 )
 
-# CORS
+# CORS & Enterprise Security
+app.add_middleware(EnterpriseSecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
