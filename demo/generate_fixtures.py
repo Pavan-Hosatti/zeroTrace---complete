@@ -15,14 +15,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 from proof.merkle import (
     compute_manifest_root,
     compute_diff_root,
-    compute_subject_commitment,
-    compute_leaf_hash,
-    build_merkle_root
+    compute_subject_commitment
 )
 from proof.signer import (
-    generate_ed25519_keypair,
-    canonicalize_receipt,
-    compute_receipt_digest,
     sign_receipt,
     verify_receipt_signature
 )

@@ -62,7 +62,7 @@ class LocalSignedLedgerAnchor(AnchorProvider):
     """
     Offline zero-dependency verifiable append-only ledger for demo-in-a-box.
     """
-    LEDGER_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "infra", "local_ledger.ndjson")
+    LEDGER_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "infra", "local_ledger.ndjson")
 
     async def anchor_root(self, job_id: str, diff_root: str, receipt_id: str) -> Dict[str, Any]:
         now_iso = datetime.now(timezone.utc).isoformat()
