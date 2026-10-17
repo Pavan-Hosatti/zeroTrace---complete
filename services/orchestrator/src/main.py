@@ -91,8 +91,21 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
 
-# Top-level Health Checks
+# Top-level Root & Health Checks
+@app.get("/", tags=["Root"])
+async def root():
+    return {
+        "service": "zerotrace-orchestrator",
+        "status": "online",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health",
+        "description": "Autonomous erasure and proof infrastructure for India's DPDP Act, 2023."
+    }
+
+
 @app.get("/health", tags=["Health"])
+@app.get("/healthz", tags=["Health"])
 async def health_check():
     return {"status": "ok", "service": "zerotrace-orchestrator", "version": "1.0.0"}
 
