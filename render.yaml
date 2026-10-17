@@ -6,8 +6,10 @@ services:
     plan: free
     rootDir: services/orchestrator
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt
-    startCommand: python -m uvicorn src.main:app --host 0.0.0.0 --port $PORT
+    startCommand: python -m uvicorn main:app --app-dir src --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHONPATH
+        value: src
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: ZT_ENV

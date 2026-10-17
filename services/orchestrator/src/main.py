@@ -5,6 +5,14 @@ Enforces request ID tracking, error envelope, CORS, and database initialization.
 """
 
 from __future__ import annotations
+import sys
+from pathlib import Path
+
+# Ensure src directory is in sys.path for relative imports on Render/Linux
+_src_dir = str(Path(__file__).resolve().parent)
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
+
 from contextlib import asynccontextmanager
 import time
 from fastapi import FastAPI, Request, Response, status
