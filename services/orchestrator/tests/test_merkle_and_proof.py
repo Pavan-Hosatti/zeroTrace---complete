@@ -106,3 +106,28 @@ def test_proof_test_vectors_file():
 
     tampered_sig = data["receipts"]["tampered_signature_receipt"]
     assert verify_receipt_signature(tampered_sig) is False
+
+
+def test_merkle_inclusion_proof_and_verification():
+    from proof.merkle import generate_merkle_proof, verify_merkle_proof
+
+    leaves = [
+        "1111111111111111111111111111111111111111111111111111111111111111",
+        "2222222222222222222222222222222222222222222222222222222222222222",
+        "3333333333333333333333333333333333333333333333333333333333333333",
+        "4444444444444444444444444444444444444444444444444444444444444444",
+        "5555555555555555555555555555555555555555555555555555555555555555"
+    ]
+    root = build_merkle_root(leaves)
+
+    for target in leaves:
+        proof = generate_merkle_proof(leaves, target)
+        assert len(proof) > 0
+        assert verify_merkle_proof(target, proof, root) is True
+
+        # Tampering with proof makes verification fail
+        corrupt_proof = list(proof)
+        corrupt_proof[0] = dict(corrupt_proof[0])
+        corrupt_proof[0]["sibling"] = "0" * 64
+        assert verify_merkle_proof(target, corrupt_proof, root) is False
+

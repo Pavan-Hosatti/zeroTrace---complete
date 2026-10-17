@@ -138,3 +138,63 @@ def compute_subject_commitment(subject_salt_hex: str, canonical_subject: str) ->
     salt_bytes = bytes.fromhex(subject_salt_hex)
     payload = salt_bytes + canonical_subject.encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
+
+
+def generate_merkle_proof(leaf_hashes: List[str], target_leaf_hash: str) -> List[Dict[str, str]]:
+    """
+    Generates a Merkle inclusion proof (audit path) for a specific leaf.
+    Returns list of dicts: [{"sibling": "<hex>", "direction": "left" | "right"}, ...]
+    """
+    if not leaf_hashes:
+        return []
+
+    current_level = sorted(leaf_hashes)
+    if target_leaf_hash not in current_level:
+        return []
+
+    idx = current_level.index(target_leaf_hash)
+    proof: List[Dict[str, str]] = []
+
+    while len(current_level) > 1:
+        if len(current_level) % 2 != 0:
+            current_level.append(current_level[-1])
+
+        sibling_idx = idx + 1 if idx % 2 == 0 else idx - 1
+        direction = "right" if sibling_idx > idx else "left"
+        proof.append({
+            "sibling": current_level[sibling_idx],
+            "direction": direction
+        })
+
+        next_level: List[str] = []
+        for i in range(0, len(current_level), 2):
+            left_bytes = bytes.fromhex(current_level[i])
+            right_bytes = bytes.fromhex(current_level[i + 1])
+            parent = hashlib.sha256(NODE_DOMAIN_SEPARATOR + left_bytes + right_bytes).hexdigest()
+            next_level.append(parent)
+
+        idx = idx // 2
+        current_level = next_level
+
+    return proof
+
+
+def verify_merkle_proof(leaf_hash: str, proof: List[Dict[str, str]], expected_root: str) -> bool:
+    """
+    Verifies that leaf_hash with the provided audit path hashes up to expected_root.
+    """
+    current = leaf_hash
+    for step in proof:
+        sibling = step["sibling"]
+        direction = step["direction"]
+        if direction == "right":
+            left_bytes = bytes.fromhex(current)
+            right_bytes = bytes.fromhex(sibling)
+        else:
+            left_bytes = bytes.fromhex(sibling)
+            right_bytes = bytes.fromhex(current)
+
+        current = hashlib.sha256(NODE_DOMAIN_SEPARATOR + left_bytes + right_bytes).hexdigest()
+
+    return current.lower() == expected_root.lower()
+
