@@ -5,7 +5,7 @@ Roles: principal, dpo, auditor, admin.
 
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 import jwt
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -38,7 +38,7 @@ def create_access_token(role: str, user_id: str, expires_delta: Optional[timedel
     return jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
 
 
-def decode_access_token(token: str) -> Dict[str, any]:
+def decode_access_token(token: str) -> Dict[str, Any]:
     """
     Decodes and validates JWT token.
     """
@@ -57,7 +57,7 @@ def decode_access_token(token: str) -> Dict[str, any]:
         )
 
 
-async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_bearer)) -> Dict[str, any]:
+async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_bearer)) -> Dict[str, Any]:
     """
     FastAPI dependency for authenticated endpoints.
     Allows demo bypass if credentials not provided in development mode.
@@ -73,7 +73,7 @@ async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] =
 
 
 def require_role(allowed_roles: List[str]):
-    def role_checker(current_user: Dict[str, any] = Depends(get_current_user)):
+    def role_checker(current_user: Dict[str, Any] = Depends(get_current_user)):
         role = current_user.get("role")
         if role not in allowed_roles and role != "admin":
             raise HTTPException(
