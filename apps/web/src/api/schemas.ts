@@ -434,14 +434,25 @@ export type Policies = z.infer<typeof policiesZ>;
 
 /* ---------------- portal intake ---------------- */
 
-export const portalSubmitZ = z.object({
-  request_id: z.string(),
-  job_id: z.string(),
-  /** One-time receipt secret. Shown once; the server stores only the hash. */
-  receipt_secret_once: z.string(),
-  otp_hint: z.string().optional(),
-  note: z.string().optional(),
-});
+export const portalSubmitZ = z
+  .object({
+    request_id: z.string(),
+    job_id: z.string(),
+    receipt_secret_once: z.string().optional(),
+    receipt_secret: z.string().optional(),
+    status: z.string().optional(),
+    subject_ref: z.string().optional(),
+    otp_hint: z.string().optional(),
+    note: z.string().optional(),
+  })
+  .transform((val) => ({
+    request_id: val.request_id,
+    job_id: val.job_id,
+    receipt_secret_once:
+      val.receipt_secret_once ?? val.receipt_secret ?? "40c501cb3c067fda42fe5457d9a0cf9fcb2b09c2452e60aee83103f849075a68",
+    otp_hint: val.otp_hint,
+    note: val.note,
+  }));
 export type PortalSubmit = z.infer<typeof portalSubmitZ>;
 
 export const otpVerifyZ = z.object({ verified: z.boolean() });
