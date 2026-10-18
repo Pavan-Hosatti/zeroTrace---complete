@@ -55,8 +55,17 @@ class RateLimiter:
         self._history[client_ip] = timestamps
         return True, 0
 
+    def get_remaining(self, client_ip: str) -> int:
+        now = time.time()
+        window_start = now - self.window_seconds
+        timestamps = [t for t in self._history.get(client_ip, []) if t > window_start]
+        return max(0, self.max_requests - len(timestamps))
 
-# Default rate limiter: 120 req/min
+    def reset_client(self, client_ip: str) -> None:
+        self._history.pop(client_ip, None)
+
+
+# Default rate limiter: 180 req/min
 global_rate_limiter = RateLimiter(max_requests=180, window_seconds=60)
 
 
@@ -78,6 +87,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 status_code=429
             )
             res.headers["Retry-After"] = str(retry_after)
+            res.headers["X-RateLimit-Limit"] = str(global_rate_limiter.max_requests)
+            res.headers["X-RateLimit-Remaining"] = "0"
             return res
 
-        return await call_next(request)
+        response: Response = await call_next(request)
+        response.headers["X-RateLimit-Limit"] = str(global_rate_limiter.max_requests)
+        response.headers["X-RateLimit-Remaining"] = str(global_rate_limiter.get_remaining(client_ip))
+        return response
