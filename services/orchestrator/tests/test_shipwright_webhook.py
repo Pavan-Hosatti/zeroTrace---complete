@@ -45,3 +45,9 @@ def test_shipwright_webhook_missing_required_field():
     }
     resp = client.post("/api/v1/webhooks/shipwright", json=payload)
     assert resp.status_code == 422
+
+
+def test_shipwright_webhook_health():
+    resp = client.get("/api/v1/webhooks/shipwright/health")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "ok"

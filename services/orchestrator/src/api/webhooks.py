@@ -67,3 +67,9 @@ async def handle_shipwright_review_webhook(
         verdict=payload.verdict.upper(),
         attestation_timestamp=time.time()
     )
+
+
+@router.get("/webhooks/shipwright/health")
+async def shipwright_webhook_health():
+    """Health ping endpoint verifying ShipWright webhook connectivity."""
+    return {"status": "ok", "service": "shipwright-audit-webhook", "active": True}
