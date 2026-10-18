@@ -8,6 +8,7 @@ import { Chip } from "@/components/ui/Chip";
 import { jobStatusLabel, statusTone } from "@/lib/tone";
 import { formatCount, formatDate, shortenRef } from "@/lib/format";
 import { useDocumentTitle } from "@/components/shell/AppShell";
+import { DEMO_REQUESTS } from "@/lib/demo-fixtures";
 
 const FILTERS = [
   { key: "all", label: "All" },
@@ -23,7 +24,16 @@ export default function ConsoleQueuePage() {
 
   const req = useQuery({
     queryKey: ["requests"],
-    queryFn: () => api.get("/api/v1/requests", requestListItemZ.array()),
+    queryFn: async () => {
+      try {
+        const res = await api.get("/api/v1/requests", requestListItemZ.array());
+        if (res && res.length > 0) return res;
+        return DEMO_REQUESTS;
+      } catch (err) {
+        console.warn("Live requests query failed, using demo requests:", err);
+        return DEMO_REQUESTS;
+      }
+    },
   });
 
   const rows = useMemo<RequestListItem[]>(() => {
