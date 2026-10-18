@@ -27,13 +27,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Lowercase Repository Owner
+        run: echo "REPO_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Build & Push Web Frontend Image
         uses: docker/build-push-action@v5
         with:
           context: apps/web
           file: apps/web/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/zerotrace-web:latest
+          tags: ghcr.io/${{ env.REPO_OWNER }}/zerotrace-web:latest
 
       - name: Build & Push Orchestrator Image
         uses: docker/build-push-action@v5
@@ -41,7 +44,7 @@ jobs:
           context: services/orchestrator
           file: services/orchestrator/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/zerotrace-orchestrator:latest
+          tags: ghcr.io/${{ env.REPO_OWNER }}/zerotrace-orchestrator:latest
 
       - name: Build & Push Data Plane Image
         uses: docker/build-push-action@v5
@@ -49,4 +52,4 @@ jobs:
           context: services/data-plane
           file: services/data-plane/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/zerotrace-dataplane:latest
+          tags: ghcr.io/${{ env.REPO_OWNER }}/zerotrace-dataplane:latest
