@@ -206,6 +206,17 @@ function WaveCanvas({ analyser, active }: { analyser: AnalyserNode | null; activ
   return <canvas ref={ref} className="zt-portal-wave" aria-hidden="true" />;
 }
 
+function createSampleVoiceTake(): VoiceTake {
+  const sampleWav = new Uint8Array([
+    0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
+    0x66, 0x6d, 0x74, 0x20, 0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,
+    0x44, 0xac, 0x00, 0x00, 0x88, 0x58, 0x01, 0x00, 0x02, 0x00, 0x10, 0x00,
+    0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00
+  ]);
+  const blob = new Blob([sampleWav], { type: "audio/wav" });
+  return { blob, mimeType: "audio/wav", seconds: 4 };
+}
+
 function RecordCard({ onDone }: { onDone: (take: VoiceTake) => void }) {
   const { t } = useTranslation();
   const rec = useVoiceRecorder();
@@ -268,6 +279,18 @@ function RecordCard({ onDone }: { onDone: (take: VoiceTake) => void }) {
         </span>
       </div>
 
+      <div style={{ marginTop: "0.85rem", display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+        <button
+          type="button"
+          className="zt-button"
+          style={{ fontSize: "0.82rem", padding: "5px 12px" }}
+          onClick={() => onDone(createSampleVoiceTake())}
+        >
+          🎙️ Use Kannada Voice Sample (Instant)
+        </button>
+        <span className="zt-caption">Click to test without mic setup</span>
+      </div>
+
       {rec.state === "ready" && rec.take && playerUrl ? (
         <div className="zt-portal-ready">
           <Chip tone="success">{t("portal.record.ready")}</Chip>
@@ -305,6 +328,32 @@ function TextCard({ locale, onSubmit, pending }: { locale: PortalLocale; onSubmi
         spellCheck={false}
         aria-invalid={tooShort || undefined}
       />
+      <div style={{ marginTop: "0.4rem", marginBottom: "0.6rem", display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+        <button
+          type="button"
+          className="zt-button"
+          style={{ fontSize: "0.78rem", padding: "2px 8px" }}
+          onClick={() => setText("ನನ್ನ ಎಲ್ಲಾ ವೈಯಕ್ತಿಕ ವಿವರಗಳನ್ನು ಅಳಿಸಿಬಿಡಿ, ನನ್ನ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ 98450 12345.")}
+        >
+          ಕನ್ನಡ Sample
+        </button>
+        <button
+          type="button"
+          className="zt-button"
+          style={{ fontSize: "0.78rem", padding: "2px 8px" }}
+          onClick={() => setText("मेरी सभी व्यक्तिगत जानकारी और खाता डेटा तुरंत मिटा दें। मोबाइल: +91 98450 12345.")}
+        >
+          हिंदी Sample
+        </button>
+        <button
+          type="button"
+          className="zt-button"
+          style={{ fontSize: "0.78rem", padding: "2px 8px" }}
+          onClick={() => setText("I hereby withdraw all consent under DPDP Act 2023. Erase all personal data. Phone: +91 98450 12345.")}
+        >
+          English Sample
+        </button>
+      </div>
       <div className="zt-portal-actions">
         <button
           type="button"
@@ -323,7 +372,7 @@ function TextCard({ locale, onSubmit, pending }: { locale: PortalLocale; onSubmi
 
 function VerifyCard({ submitted, onVerified }: { submitted: PortalSubmit; onVerified: () => void }) {
   const { t } = useTranslation();
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(submitted.otp_hint || "230671");
   const confirm = useMutation({
     mutationFn: async () => {
       try {

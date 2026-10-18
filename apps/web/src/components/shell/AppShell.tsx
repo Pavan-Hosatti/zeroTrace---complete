@@ -11,14 +11,6 @@ import JudgeTourModal from "@/components/shell/JudgeTourModal";
 export default function AppShell() {
   const [tourOpen, setTourOpen] = useState(false);
 
-  useEffect(() => {
-    const seen = localStorage.getItem("zt_judge_tour_dismissed");
-    if (!seen) {
-      const t = setTimeout(() => setTourOpen(true), 700);
-      return () => clearTimeout(t);
-    }
-  }, []);
-
   return (
     <div className="vbg-report">
       <div className="zt-shell">
