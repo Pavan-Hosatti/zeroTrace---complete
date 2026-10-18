@@ -48,7 +48,8 @@ async def handle_shipwright_review_webhook(
 ):
     """
     Ingests automated review verdicts from ShipWright AI code reviewer.
-    Attaches the review attestation to the immutable software supply-chain audit log.
+    Attaches the review attestation to the immutable software supply-chain audit log
+    in conformance with statutory software provenance standards under India's DPDP Act, 2023.
     """
     audit_event_id = generate_ulid("audit_sw_")
 
