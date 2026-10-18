@@ -79,7 +79,7 @@ async function request<T>(method: string, path: string, schema: { parse(v: unkno
   const res = await fetch(full(path), {
     method,
     headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
     signal: AbortSignal.timeout(20_000),
     ...init,
   });

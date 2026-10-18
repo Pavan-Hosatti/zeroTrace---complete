@@ -2726,3 +2726,409 @@ tr:hover .zt-row-link .zt-id {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------------- Judge Tour & Guide Modal ---------------- */
+
+.zt-tour-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.zt-tour-modal {
+  width: 100%;
+  max-width: 620px;
+  background: #0d1117;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 35px rgba(16, 185, 129, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: ztTourFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ztTourFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.zt-tour-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.15rem 1.4rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.zt-tour-mascot-container {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.zt-tour-avatar {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #064e3b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
+  flex-shrink: 0;
+}
+
+.zt-tour-avatar-pulse {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid #10b981;
+  animation: ztTourPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes ztTourPulse {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.2;
+    transform: scale(1.15);
+  }
+}
+
+.zt-tour-agent-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #ffffff;
+}
+
+.zt-tour-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.zt-tour-agent-sub {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.zt-tour-close-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.zt-tour-close-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+.zt-tour-speech-bubble {
+  margin: 1rem 1.4rem 0.4rem;
+  padding: 0.85rem 1.1rem;
+  background: rgba(16, 185, 129, 0.07);
+  border-left: 3px solid #10b981;
+  border-radius: 0 10px 10px 0;
+  color: #d1fae5;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  font-style: italic;
+}
+
+.zt-tour-speech-text {
+  margin: 0;
+}
+
+.zt-tour-content {
+  padding: 0.9rem 1.4rem;
+}
+
+.zt-tour-step-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.zt-tour-step-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #34d399;
+  text-transform: uppercase;
+}
+
+.zt-tour-progress-text {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.zt-tour-title {
+  margin: 0 0 0.2rem;
+  font-size: 1.22rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.zt-tour-subtitle {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.zt-tour-instructions {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.zt-tour-instructions-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #cbd5e1;
+}
+
+.zt-tour-points {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.zt-tour-point-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.87rem;
+  color: #e2e8f0;
+  line-height: 1.4;
+}
+
+.zt-tour-point-bullet {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  font-weight: 700;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.zt-tour-protip {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+}
+
+.zt-tour-protip-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.zt-tour-protip-text {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #fef3c7;
+  line-height: 1.4;
+}
+
+.zt-tour-action-row {
+  padding: 0 1.4rem 0.85rem;
+}
+
+.zt-tour-jump-btn {
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  transition: all 0.15s ease;
+}
+
+.zt-tour-jump-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+  transform: translateY(-1px);
+}
+
+.zt-tour-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.95rem 1.4rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.zt-tour-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: #64748b;
+  cursor: pointer;
+  user-select: none;
+}
+
+.zt-tour-checkbox-label input {
+  accent-color: #10b981;
+  cursor: pointer;
+}
+
+.zt-tour-dots {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.zt-tour-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.18s ease;
+}
+
+.zt-tour-dot.active {
+  width: 22px;
+  border-radius: 9999px;
+  background: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.zt-tour-nav-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.zt-tour-nav-btn {
+  padding: 0.42rem 0.85rem;
+  font-size: 0.84rem;
+  font-weight: 500;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.zt-tour-prev {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+.zt-tour-prev:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.zt-tour-prev:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.zt-tour-next {
+  background: #10b981;
+  border: 1px solid #10b981;
+  color: #ffffff;
+}
+
+.zt-tour-next:hover {
+  background: #059669;
+  border-color: #059669;
+}
+
+/* Glowing Topbar & Rail Quickstart Buttons */
+
+.zt-tour-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(6, 78, 59, 0.25) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: auto;
+}
+
+.zt-tour-trigger-btn:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(6, 78, 59, 0.4) 100%);
+  border-color: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+  transform: translateY(-1px);
+}
+
+.zt-tour-trigger-beacon {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: ztTourPulse 1.8s infinite;
+}
+

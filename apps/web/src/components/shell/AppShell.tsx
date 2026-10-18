@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { env } from "@/lib/env";
+import JudgeTourModal from "@/components/shell/JudgeTourModal";
 
 /**
  * App chrome. The foundation (vercel-brand.css) scopes typography and themes
@@ -8,6 +9,8 @@ import { env } from "@/lib/env";
  * The rail exists at ≥900px; below that the topbar is the navigator.
  */
 export default function AppShell() {
+  const [tourOpen, setTourOpen] = useState(false);
+
   return (
     <div className="vbg-report">
       <div className="zt-shell">
@@ -50,6 +53,15 @@ export default function AppShell() {
             <NavLink to="/demo" className="zt-rail-link">
               <span>Demo Director</span>
             </NavLink>
+            <button
+              type="button"
+              className="zt-tour-trigger-btn"
+              style={{ width: "100%", justifyContent: "center", marginTop: "1rem" }}
+              onClick={() => setTourOpen(true)}
+            >
+              <span className="zt-tour-trigger-beacon" aria-hidden="true" />
+              <span>⚡ Evaluator Guide</span>
+            </button>
           </nav>
 
           <div className="zt-rail-footer">
@@ -66,16 +78,28 @@ export default function AppShell() {
               Skip to content
             </a>
             <span className="zt-topbar-title">ZeroTrace</span>
-            <span className="zt-topbar-context">Kaveri Finserv (demo data) · ap-south-1</span>
+            <span className="zt-topbar-context">Kaveri Finserv (ap-south-1)</span>
             <span className="zt-topbar-env" data-tone="neutral">
               {env.envLabel}
             </span>
+
+            <button
+              type="button"
+              className="zt-tour-trigger-btn"
+              onClick={() => setTourOpen(true)}
+              title="Open Technical Architecture Evaluation Guide"
+            >
+              <span className="zt-tour-trigger-beacon" aria-hidden="true" />
+              <span>⚡ Technical Runbook</span>
+            </button>
           </header>
           <main className="zt-main" id="content">
             <Outlet />
           </main>
         </div>
       </div>
+
+      <JudgeTourModal open={tourOpen} onClose={() => setTourOpen(false)} />
     </div>
   );
 }

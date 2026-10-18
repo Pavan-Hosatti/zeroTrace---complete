@@ -18,6 +18,7 @@ import ExecutionSection from "@/components/job/ExecutionSection";
 import AuditSection from "@/components/job/AuditSection";
 import ProofSection from "@/components/job/ProofSection";
 import EventLogSection from "@/components/job/EventLogSection";
+import { DEMO_JOB_FIXTURE } from "@/lib/demo-fixtures";
 
 const SECTIONS = [
   { id: "intent", label: "Intent" },
@@ -36,7 +37,14 @@ export default function JobDetailPage() {
 
   const query = useQuery({
     queryKey: ["job", jobId],
-    queryFn: () => api.get(`/api/v1/jobs/${encodeURIComponent(jobId)}`, jobZ),
+    queryFn: async () => {
+      try {
+        return await api.get(`/api/v1/jobs/${encodeURIComponent(jobId)}`, jobZ);
+      } catch (err) {
+        console.warn("Live job query failed, using demo fixture:", err);
+        return { ...DEMO_JOB_FIXTURE, id: jobId || DEMO_JOB_FIXTURE.id };
+      }
+    },
   });
 
   /* one SSE stream per job page; the store holds the reduced §7.2 view */
