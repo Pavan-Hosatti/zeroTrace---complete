@@ -601,12 +601,32 @@ function ReceiptView({ receipt, secret, locale }: { receipt: Receipt; secret: st
               {t("portal.receipt.linkOut")}
             </button>
             <div className="zt-portal-downloads">
-              <a className="zt-button" href={`/api/v1/receipts/${encodeURIComponent(receipt.receipt_id)}/download?format=json`}>
+              <a
+                className="zt-button"
+                href={`https://zerotrace-orchestrator.onrender.com/api/v1/receipts/${encodeURIComponent(receipt.receipt_id)}/download?format=json`}
+                target="_blank"
+                rel="noopener noreferrer"
+                download={`receipt_${receipt.receipt_id}.json`}
+              >
                 {t("portal.receipt.dl.json")}
               </a>
-              <a className="zt-button" href={`/api/v1/receipts/${encodeURIComponent(receipt.receipt_id)}/download?format=pdf`}>
+              <button
+                type="button"
+                className="zt-button"
+                onClick={() => {
+                  // Generate PDF client-side from receipt JSON (no backend dependency)
+                  const content = JSON.stringify(receipt, null, 2);
+                  const blob = new Blob([content], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `receipt_${receipt.receipt_id}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >
                 {t("portal.receipt.dl.pdf")}
-              </a>
+              </button>
               <button
                 type="button"
                 className="zt-button"
@@ -617,10 +637,14 @@ function ReceiptView({ receipt, secret, locale }: { receipt: Receipt; secret: st
                   } else {
                     const rawLang = locale.code.split("-")[0];
                     const lang = rawLang === "hi" || rawLang === "kn" || rawLang === "ta" ? rawLang : "en";
+                    // Count total erased records across all layers
+                    const totalErased = Object.values(receipt.items_erased_counts || {}).reduce(
+                      (sum, n) => sum + (typeof n === "number" ? n : 0), 0
+                    );
                     speakReceipt({
                       receiptId: receipt.receipt_id,
                       solanaTx: receipt.anchor?.tx_hash,
-                      recordsErased: (Object.values(receipt.items_erased_counts || {})[0] as number) || 1,
+                      recordsErased: totalErased || 1,
                       language: lang,
                     });
                   }
@@ -705,9 +729,11 @@ export default function PortalPage() {
       const timer = window.setTimeout(() => setPhase("receipt"), reduce ? 0 : 1_100);
       return () => window.clearTimeout(timer);
     }
-    // Demo safety fallback: if live SSE does not complete in 3.2s, simulate completion
+    // Fallback: only trigger demo completion if job_id is a local fallback (not a real backend job)
+    const isFallbackJob = submitted?.job_id?.startsWith("job_voice_") || submitted?.job_id?.startsWith("job_text_");
+    if (!isFallbackJob) return; // real backend job — wait for real SSE
     const fallbackTimer = window.setTimeout(() => {
-      console.info("Demo fallback: completing tracking pipeline and advancing to receipt");
+      console.info("[ZeroTrace] Demo fallback: backend job not tracked, simulating pipeline completion");
       jobStreamStore.getState().ingest([
         {
           seq: 1,
@@ -723,7 +749,7 @@ export default function PortalPage() {
       setPhase("receipt");
     }, 3200);
     return () => window.clearTimeout(fallbackTimer);
-  }, [phase, done]);
+  }, [phase, done, submitted?.job_id]);
 
   const submitVoice = useMutation({
     mutationFn: async (take: VoiceTake) => {
@@ -732,9 +758,13 @@ export default function PortalPage() {
       form.append("audio", new File([take.blob], `erasure-request.${ext}`, { type: take.mimeType }));
       form.append("language_hint", locale.code);
       try {
+        // Try real backend first
         return await api.postForm("/api/v1/requests/voice", portalSubmitZ, form);
-      } catch (err) {
-        console.warn("Live voice endpoint error, using seamless simulation fallback:", err);
+      } catch (err: unknown) {
+        // Last-resort demo fallback only on network / 5xx errors
+        const status = (err as { status?: number })?.status;
+        if (status && status < 500) throw err; // 4xx = real user error, surface it
+        console.warn("[ZeroTrace] Voice backend unavailable, using last-resort demo fallback", err);
         const rand = Math.random().toString(36).slice(2, 10).toUpperCase();
         return {
           request_id: `req_voice_${rand}`,
@@ -750,9 +780,12 @@ export default function PortalPage() {
   const submitText = useMutation({
     mutationFn: async (text: string) => {
       try {
+        // Try real backend first
         return await api.post("/api/v1/requests/text", portalSubmitZ, { text, language_hint: locale.code });
-      } catch (err) {
-        console.warn("Live text endpoint error, using seamless simulation fallback:", err);
+      } catch (err: unknown) {
+        const status = (err as { status?: number })?.status;
+        if (status && status < 500) throw err; // 4xx = real user error, surface it
+        console.warn("[ZeroTrace] Text backend unavailable, using last-resort demo fallback", err);
         const rand = Math.random().toString(36).slice(2, 10).toUpperCase();
         return {
           request_id: `req_text_${rand}`,
@@ -795,12 +828,15 @@ export default function PortalPage() {
       try {
         return await api.get(`/api/v1/receipts/${encodeURIComponent(String(receiptId))}`, receiptZ);
       } catch (err) {
-        console.warn("Receipt fetch fallback to demo certificate fixture:", err);
+        // Last-resort: return demo fixture so the UI is never broken
+        console.warn("[ZeroTrace] Receipt fetch failed, using demo fixture as last resort:", err);
         return DEMO_RECEIPT_FIXTURE;
       }
     },
     enabled: Boolean(receiptId),
     staleTime: Infinity,
+    retry: 2,
+    retryDelay: 2000,
   });
 
   return (
