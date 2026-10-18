@@ -1,7 +1,17 @@
 """Unit tests for ZeroTrace ElevenLabs Voice Receipt Adapter."""
 
+import os
+import sys
 import pytest
-from src.adapters.elevenlabs import ElevenLabsReceiptSpeaker
+
+_src = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+if _src not in sys.path:
+    sys.path.insert(0, _src)
+
+try:
+    from adapters.elevenlabs import ElevenLabsReceiptSpeaker
+except ImportError:
+    from src.adapters.elevenlabs import ElevenLabsReceiptSpeaker
 
 
 @pytest.mark.asyncio

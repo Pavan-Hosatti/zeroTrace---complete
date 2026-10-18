@@ -1,7 +1,17 @@
 """Unit tests for ZeroTrace Sarvam AI Indic Speech & Voice Adapter."""
 
+import os
+import sys
 import pytest
-from src.adapters.sarvam import SarvamAdapter
+
+_src = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+if _src not in sys.path:
+    sys.path.insert(0, _src)
+
+try:
+    from adapters.sarvam import SarvamAdapter
+except ImportError:
+    from src.adapters.sarvam import SarvamAdapter
 
 
 @pytest.mark.asyncio
