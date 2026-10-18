@@ -146,15 +146,14 @@ export default function JudgeTourModal({ open, onClose }: JudgeTourModalProps) {
         <div className="zt-tour-header">
           <div className="zt-tour-mascot-container">
             <div className="zt-tour-avatar">
-              <span className="zt-tour-avatar-face" aria-hidden="true">ZT</span>
-              <span className="zt-tour-avatar-pulse" />
+              <span aria-hidden="true">🛡️</span>
             </div>
             <div>
               <div className="zt-tour-agent-name">
-                <span>ZeroTrace Architecture Runbook</span>
-                <span className="zt-tour-badge">Evaluator Guide</span>
+                <span>Technical Architecture Runbook</span>
+                <span className="zt-tour-badge">DPDP §6(4) / §12(1)</span>
               </div>
-              <p className="zt-tour-agent-sub">Step-by-step verification guide for technical judges & DPOs</p>
+              <p className="zt-tour-agent-sub">Interactive walkthrough for statutory compliance verification</p>
             </div>
           </div>
           <button

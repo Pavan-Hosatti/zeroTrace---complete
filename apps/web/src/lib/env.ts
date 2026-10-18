@@ -7,22 +7,15 @@ function str(name: keyof ImportMetaEnv, fallback = ""): string {
 
 export const env = {
   get apiBase(): string {
-    // Empty means same-origin; the Vite dev proxy (or Caddy in prod) routes /api.
-    return str("VITE_API_BASE", "");
+    // Default to the production Render orchestrator backend
+    return str("VITE_API_BASE", "https://zerotrace-orchestrator.onrender.com");
   },
   get useMock(): boolean {
     const explicitlySet = str("VITE_USE_MOCK", "");
     if (explicitlySet !== "") {
       return explicitlySet.toLowerCase() === "true";
     }
-    // If a real backend is configured, automatically connect to the real backend
-    if (str("VITE_API_BASE", "") !== "") {
-      return false;
-    }
-    // Fallback: if no backend is provided on Vercel, use mock fixtures so the app is always functional
-    if (typeof window !== "undefined" && window.location.hostname.includes("vercel.app")) {
-      return true;
-    }
+    // Default to real backend execution (never fake/mock)
     return false;
   },
   get mockSpeed(): number {
